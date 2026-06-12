@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolling Metal Engineering - Weekly Labour Software</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Arial,sans-serif; }
+body { background:#f0f2f5; }
+.header { background:linear-gradient(135deg,#1e3c72,#2a5298); color:#fff; padding:12px 15px; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.2); position:sticky; top:0; z-index:100; }
+.header h1 { font-size:20px; margin-bottom:2px; }
+.header p { font-size:12px; opacity:0.9; }
+
+.nav { display:flex; background:#fff; border-bottom:2px solid #ddd; overflow-x:auto; }
+.nav button { flex:1; padding:12px 8px; border:none; background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#555; transition:0.3s; white-space:nowrap; min-width:90px; }
+.nav button:hover { background:#e8f0fe; color:#1e3c72; }
+.nav button.active { background:#1e3c72; color:#fff; border-bottom:3px solid #ff9800; }
+
+.container { max-width:1200px; margin:15px auto; padding:0 12px; }
+.card { background:#fff; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.08); padding:15px; margin-bottom:15px; }
+.card-title { font-size:16px; font-weight:700; color:#1e3c72; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #e8f0fe; display:flex; align-items:center; gap:6px; }
+
+.form-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+.form-group { flex:1; min-width:160px; }
+.form-group label { display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:4px; }
+.form-group input, .form-group select { width:100%; padding:8px 10px; border:2px solid #ddd; border-radius:6px; font-size:13px; }
+.form-group input:focus, .form-group select:focus { border-color:#1e3c72; outline:none; }
+
+.btn { padding:8px 18px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; transition:0.3s; }
+.btn-primary { background:linear-gradient(135deg,#1e3c72,#2a5298); color:#fff; }
+.btn-success { background:linear-gradient(135deg,#28a745,#34ce57); color:#fff; }
+.btn-danger { background:linear-gradient(135deg,#dc3545,#ff6b6b); color:#fff; }
+.btn-warning { background:linear-gradient(135deg,#ff9800,#ffc107); color:#fff; }
+.btn-info { background:linear-gradient(135deg,#17a2b8,#5bc0de); color:#fff; }
+.btn-purple { background:linear-gradient(135deg,#6f42c1,#a855f7); color:#fff; }
+.btn-sm { padding:5px 10px; font-size:11px; }
+.btn-group { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0; }
+
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+th { background:linear-gradient(135deg,#1e3c72,#2a5298); color:#fff; padding:10px 6px; text-align:center; font-weight:600; position:sticky; top:0; font-size:11px; }
+td { padding:8px 6px; text-align:center; border-bottom:1px solid #eee; }
+tr:hover { background:#f8f9ff; }
+tr:nth-child(even) { background:#fafbfc; }
+
+.att-btn { padding:5px 10px; border:none; border-radius:15px; cursor:pointer; font-size:11px; font-weight:600; transition:0.2s; margin:1px; }
+.att-present { background:#28a745; color:#fff; }
+.att-absent { background:#dc3545; color:#fff; }
+.att-half { background:#ff9800; color:#fff; }
+.att-off { background:#6c757d; color:#fff; opacity:0.5; }
+.att-btn:hover { transform:scale(1.1); }
+.att-btn.selected { box-shadow:0 0 0 2px rgba(0,0,0,0.2); transform:scale(1.1); }
+
+.status-present { background:#d4edda; color:#155724; padding:3px 8px; border-radius:10px; font-weight:600; font-size:11px; }
+.status-absent { background:#f8d7da; color:#721c24; padding:3px 8px; border-radius:10px; font-weight:600; font-size:11px; }
+.status-half { background:#fff3cd; color:#856404; padding:3px 8px; border-radius:10px; font-weight:600; font-size:11px; }
+.status-off { background:#e2e3e5; color:#383d41; padding:3px 8px; border-radius:10px; font-weight:600; font-size:11px; }
+
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:12px 0; }
+.stat-box { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:14px; border-radius:10px; text-align:center; }
+.stat-box.green { background:linear-gradient(135deg,#11998e,#38ef7d); }
+.stat-box.red { background:linear-gradient(135deg,#eb3349,#f45c43); }
+.stat-box.orange { background:linear-gradient(135deg,#f093fb,#f5576c); }
+.stat-box.blue { background:linear-gradient(135deg,#4facfe,#00f2fe); }
+.stat-box.purple { background:linear-gradient(135deg,#6f42c1,#a855f7); }
+.stat-number { font-size:24px; font-weight:700; }
+.stat-label { font-size:11px; opacity:0.9; margin-top:3px; }
+
+.whatsapp-box { background:#e8f5e9; border:2px solid #4caf50; border-radius:8px; padding:12px; margin:12px 0; font-family:monospace; font-size:12px; white-space:pre-wrap; line-height:1.5; max-height:300px; overflow-y:auto; }
+
+.search-box { width:100%; max-width:350px; padding:8px 12px; border:2px solid #ddd; border-radius:20px; font-size:13px; margin-bottom:12px; }
+
+.hidden { display:none !important; }
+
+.week-info { background:#e8f0fe; border-left:4px solid #1e3c72; padding:10px 15px; margin:10px 0; border-radius:0 8px 8px 0; }
+.week-info p { margin:3px 0; font-size:13px; }
+.week-info .highlight { color:#1e3c72; font-weight:700; }
+
+.salary-slip { border:2px solid #1e3c72; padding:15px; border-radius:8px; background:#fff; }
+.salary-slip h3 { text-align:center; color:#1e3c72; margin-bottom:10px; font-size:16px; }
+.salary-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #ddd; font-size:13px; }
+.salary-row.total { font-weight:700; font-size:15px; color:#1e3c72; border-top:2px solid #1e3c72; border-bottom:none; margin-top:8px; padding-top:8px; }
+
+.popup-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:200; }
+.popup-overlay.active { display:flex; }
+.popup-box { background:#fff; padding:20px; border-radius:10px; max-width:450px; width:90%; max-height:80vh; overflow-y:auto; }
+.popup-title { font-size:16px; font-weight:700; color:#1e3c72; margin-bottom:12px; }
+.popup-close { float:right; font-size:22px; cursor:pointer; color:#999; }
+
+@media print {
+  .nav, .btn-group, .no-print { display:none !important; }
+  .card { box-shadow:none; border:1px solid #ddd; }
+  body { background:#fff; }
+}
+
+.empty-state { text-align:center; padding:30px; color:#999; font-size:14px; }
+
+.date-picker { padding:7px 10px; border:2px solid #ddd; border-radius:6px; font-size:13px; }
+
+.toggle-row { display:flex; align-items:center; gap:10px; margin:10px 0; padding:10px; background:#fff3cd; border-radius:8px; }
+.toggle-row label { font-weight:600; color:#856404; font-size:13px; }
+.toggle-switch { position:relative; width:50px; height:26px; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; border-radius:26px; transition:0.3s; }
+.toggle-slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.3s; }
+.toggle-switch input:checked + .toggle-slider { background:#28a745; }
+.toggle-switch input:checked + .toggle-slider:before { transform:translateX(24px); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏭 Rolling Metal Engineering</h1>
+  <p>Weekly Labour System | Mon-Sun | Payment: Tuesday | 📞 9209320037</p>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('dashboard')">📊 Dashboard</button>
+  <button onclick="showTab('labour')">👷 Labour</button>
+  <button onclick="showTab('attendance')">✅ Attendance</button>
+  <button onclick="showTab('payment')">💵 Payment</button>
+  <button onclick="showTab('advance')">💰 Advance</button>
+  <button onclick="showTab('whatsapp')">📱 WhatsApp</button>
+  <button onclick="showTab('reports')">📋 Reports</button>
+</div>
+
+<div class="container">
+
+<!-- ========== DASHBOARD ========== -->
+<div id="dashboard" class="tab-content">
+  <div class="card">
+    <div class="card-title">📅 This Week Overview</div>
+    <div class="week-info" id="weekInfo"></div>
+    <div class="stats-grid">
+      <div class="stat-box green"><div class="stat-number" id="dTotal">0</div><div class="stat-label">Total Labour</div></div>
+      <div class="stat-box"><div class="stat-number" id="dPresent">0</div><div class="stat-label">Present Today</div></div>
+      <div class="stat-box red"><div class="stat-number" id="dAbsent">0</div><div class="stat-label">Absent Today</div></div>
+      <div class="stat-box orange"><div class="stat-number" id="dHalf">0</div><div class="stat-label">Half Day</div></div>
+      <div class="stat-box purple"><div class="stat-number" id="dOff">0</div><div class="stat-label">Sunday Off</div></div>
+      <div class="stat-box blue"><div class="stat-number" id="dWages">₹0</div><div class="stat-label">Today Wages</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚡ Quick Attendance - <span id="dashDate"></span></div>
+    <div class="btn-group no-print">
+      <button class="btn btn-success btn-sm" onclick="markAll('P')">✅ All Present</button>
+      <button class="btn btn-danger btn-sm" onclick="markAll('A')">❌ All Absent</button>
+      <button class="btn btn-warning btn-sm" onclick="markAll('H')">🟡 All Half</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAttendance()">💾 Save</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>S.No.</th><th>Name</th><th>Wage</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="dashAttTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== LABOUR MASTER ========== -->
+<div id="labour" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">➕ Add New Labour</div>
+    <div class="form-row">
+      <div class="form-group"><label>Full Name *</label><input type="text" id="lName" placeholder="Labour ka naam"></div>
+      <div class="form-group"><label>Father/Husband Name</label><input type="text" id="lFather" placeholder="Guardian ka naam"></div>
+      <div class="form-group"><label>Phone/WhatsApp *</label><input type="text" id="lPhone" placeholder="9200000000"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Address</label><input type="text" id="lAddr" placeholder="Pura pata"></div>
+      <div class="form-group"><label>Designation</label><input type="text" id="lDesig" placeholder="Mistri, Helper..."></div>
+      <div class="form-group"><label>Daily Wage (₹) *</label><input type="number" id="lWage" placeholder="500"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Joining Date</label><input type="date" id="lJoin" class="date-picker"></div>
+      <div class="form-group"><label>Bank A/c</label><input type="text" id="lBank" placeholder="Optional"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addLabour()">➕ Add Labour</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👷 Labour List</div>
+    <input type="text" class="search-box" id="lSearch" placeholder="🔍 Search..." onkeyup="renderLabour()">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Desig</th><th>Wage</th><th>Join</th><th>Action</th></tr></thead>
+        <tbody id="labTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== WEEKLY ATTENDANCE ========== -->
+<div id="attendance" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">📅 Weekly Attendance Register</div>
+    <div class="form-row">
+      <div class="form-group"><label>Select Monday Date</label><input type="date" id="wkDate" class="date-picker" onchange="loadWeek()"></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="loadWeek()">🔍 Load Week</button></div>
+    </div>
+    <div class="week-info" id="weekDisplay"></div>
+
+    <!-- Sunday Toggle -->
+    <div class="toggle-row">
+      <label>🔵 Sunday Working Day Banayein?</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="sundayToggle" onchange="toggleSunday()">
+        <span class="toggle-slider"></span>
+      </label>
+      <span id="sundayStatus" style="font-size:12px;color:#666;">OFF (Chhutti)</span>
+    </div>
+
+    <div class="btn-group no-print">
+      <button class="btn btn-success btn-sm" onclick="markWeekAll('P')">✅ All Present</button>
+      <button class="btn btn-danger btn-sm" onclick="markWeekAll('A')">❌ All Absent</button>
+      <button class="btn btn-warning btn-sm" onclick="markWeekAll('H')">🟡 All Half</button>
+      <button class="btn btn-primary" onclick="saveWeekAtt()">💾 Save Week</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>S.No.</th><th>Name</th><th>Wage</th>
+            <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th id="sunHeader">Sun<br><small>OFF</small></th>
+            <th>Present</th><th>Half</th><th>Total Wages</th>
+          </tr>
+        </thead>
+        <tbody id="weekAttTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== WEEKLY PAYMENT ========== -->
+<div id="payment" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">💵 Generate Weekly Payment</div>
+    <div class="form-row">
+      <div class="form-group"><label>Week Starting (Monday)</label><input type="date" id="payWeek" class="date-picker" onchange="updatePayWeek()"></div>
+      <div class="form-group" style="display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="generatePayment()">📊 Generate</button></div>
+    </div>
+    <div class="week-info" id="payWeekInfo"></div>
+    <div id="paymentResult"></div>
+  </div>
+</div>
+
+<!-- ========== ADVANCE ========== -->
+<div id="advance" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">💰 Record Advance / Payment</div>
+    <div class="form-row">
+      <div class="form-group"><label>Labour</label><select id="aLabour"></select></div>
+      <div class="form-group"><label>Date</label><input type="date" id="aDate" class="date-picker"></div>
+      <div class="form-group"><label>Type</label><select id="aType"><option>Advance</option><option>Full Payment</option><option>Partial Payment</option><option>Loan</option><option>Deduction</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Amount (₹)</label><input type="number" id="aAmt" placeholder="Amount"></div>
+      <div class="form-group"><label>Mode</label><select id="aMode"><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Check</option></select></div>
+      <div class="form-group"><label>Reference</label><input type="text" id="aRef" placeholder="Bill no."></div>
+    </div>
+    <button class="btn btn-primary" onclick="addAdvance()">💾 Save</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 History</div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Date</th><th>Labour</th><th>Type</th><th>Amount</th><th>Mode</th><th>Balance</th><th>Action</th></tr></thead><tbody id="advTable"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ========== WHATSAPP ========== -->
+<div id="whatsapp" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">📱 WhatsApp Message Generator</div>
+    <div class="form-row">
+      <div class="form-group"><label>Labour</label><select id="wLabour" onchange="genWA()"></select></div>
+      <div class="form-group"><label>Type</label><select id="wType" onchange="genWA()"><option value="weekly">Weekly Attendance</option><option value="payment">Weekly Payment</option><option value="advance">Advance</option><option value="sunday">Sunday Off</option></select></div>
+      <div class="form-group"><label>Week Monday</label><input type="date" id="wDate" class="date-picker" onchange="genWA()"></div>
+    </div>
+    <div class="whatsapp-box" id="waBox">Labour select karein...</div>
+    <div class="btn-group">
+      <button class="btn btn-success" onclick="copyWA()">📋 Copy Message</button>
+      <button class="btn btn-primary" onclick="openWA()">📱 Open WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== REPORTS ========== -->
+<div id="reports" class="tab-content hidden">
+  <div class="card">
+    <div class="card-title">📋 Reports & Export</div>
+    <div class="btn-group no-print">
+      <button class="btn btn-purple" onclick="downloadPDF()">📄 Download PDF</button>
+      <button class="btn btn-warning" onclick="exportData()">💾 Export Backup</button>
+      <button class="btn btn-danger" onclick="clearAll()">🗑️ Clear All</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Labour for Individual Card</label><select id="rLabour" onchange="showCard()"></select></div>
+    </div>
+    <div id="cardResult"></div>
+  </div>
+</div>
+
+</div>
+
+<div class="popup-overlay" id="popup">
+  <div class="popup-box">
+    <span class="popup-close" onclick="closePopup()">&times;</span>
+    <div class="popup-title" id="pTitle">Edit</div>
+    <div id="pContent"></div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+let labour = JSON.parse(localStorage.getItem('rme_labour')) || [];
+let attendance = JSON.parse(localStorage.getItem('rme_attendance')) || {};
+let advances = JSON.parse(localStorage.getItem('rme_advance')) || [];
+let sundayWorking = JSON.parse(localStorage.getItem('rme_sunday')) || false;
+
+// ==================== UTILS ====================
+function fmtDate(d) { return new Date(d).toLocaleDateString('hi-IN',{day:'numeric',month:'short',year:'numeric'}); }
+function getMonday(d) { const date=new Date(d); const day=date.getDay(); const diff=date.getDate()-day+(day===0?-6:1); return new Date(date.setDate(diff)); }
+function addDays(d,n) { const date=new Date(d); date.setDate(date.getDate()+n); return date.toISOString().split('T')[0]; }
+function getWeekDays(monday) {
+  const days=[];
+  for(let i=0;i<7;i++) days.push(addDays(monday,i));
+  return days;
+}
+function getNextTuesday(monday) {
+  const date=new Date(monday);
+  date.setDate(date.getDate()+8);
+  return date.toISOString().split('T')[0];
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded',()=>{
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('lJoin').value=today;
+  document.getElementById('aDate').value=today;
+  document.getElementById('dashDate').textContent=fmtDate(today);
+
+  const mon=getMonday(today).toISOString().split('T')[0];
+  document.getElementById('wkDate').value=mon;
+  document.getElementById('payWeek').value=mon;
+  document.getElementById('wDate').value=mon;
+
+  // Restore Sunday toggle
+  document.getElementById('sundayToggle').checked = sundayWorking;
+  updateSundayUI();
+
+  updateWeekInfo();
+  refreshAll();
+});
+
+function showTab(tab){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+  document.getElementById(tab).classList.remove('hidden');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  refreshAll();
+}
+
+function refreshAll(){
+  updateDropdowns();
+  renderLabour();
+  renderDashAtt();
+  renderWeekAtt();
+  renderAdvTable();
+  updateDashStats();
+  updateWeekInfo();
+}
+
+function updateWeekInfo(){
+  const mon=document.getElementById('wkDate').value||new Date().toISOString().split('T')[0];
+  const days=getWeekDays(mon);
+  const tue=getNextTuesday(mon);
+  const sunStatus = sundayWorking ? "WORKING DAY 🔵" : "OFF (Chhutti) 🔵";
+  document.getEleme
